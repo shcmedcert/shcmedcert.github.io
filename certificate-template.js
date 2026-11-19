@@ -71,6 +71,7 @@ function buildCertificateHtml(settings, cert) {
 <head>
 <meta charset="utf-8" />
 <style>
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { size: letter; margin: 0; }
   * { box-sizing: border-box; }
   body {
@@ -95,11 +96,12 @@ function buildCertificateHtml(settings, cert) {
   .body-text { text-align: justify; text-indent: 48px; }
   .blank { border-bottom: 1px solid #111; display: inline-block; padding: 0 6px; min-height: 16px; font-weight: bold; text-align: center; text-indent: 0; }
   .field-row { display: flex; align-items: flex-start; margin-top: 26px; }
-  .field-label { font-weight: normal; white-space: nowrap; margin-right: 6px; }
+  .field-label { font-weight: normal; white-space: nowrap; width: 84px; flex: 0 0 84px; margin-right: 6px; }
   .field-para {
     flex: 1; line-height: 28px; padding-left: 2px; text-align: left;
     background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, #111 27px, #111 28px);
     background-size: 100% 28px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .inline-line { border-bottom: 1px solid #111; padding: 0 6px; font-weight: bold; }
   .blank-wide { display: inline-block; text-indent: 0; }

@@ -319,8 +319,20 @@ document.getElementById('patients-body').addEventListener('click', async (e) => 
   const btn = e.target.closest('button');
   if (!btn) return;
   if (btn.dataset.action === 'delete-patient') {
-    if (await showConfirm('Delete this patient record?')) {
-      await window.api.deletePatient(btn.dataset.id);
+    const row = btn.closest('tr');
+    const name = row ? row.children[0].textContent.trim() : '';
+    if (await showConfirm('Delete this patient record?\n\nThis only removes the saved patient (used for auto-fill). Certificates already issued stay valid and their QR codes keep saying GENUINE until you cancel them.')) {
+      await guarded(async () => {
+        await window.api.deletePatient(btn.dataset.id);
+        const certs = (await window.api.listCertificates()).filter(c =>
+          c.status !== 'cancelled' && String(c.name || '').trim().toLowerCase() === name.toLowerCase());
+        if (certs.length && await showConfirm(
+          name + ' still has ' + certs.length + ' valid certificate(s):\n' +
+          certs.map(c => '• ' + c.controlNumber).join('\n') +
+          '\n\nCancel them too? Their QR codes will then show CANCELLED. (You can reinstate them later in History.)')) {
+          for (const c of certs) await window.api.setCertificateStatus(c.id, 'cancelled');
+        }
+      });
       loadPatients();
     }
   }
