@@ -185,3 +185,16 @@ grant execute on function verify_certificate(text) to anon, authenticated;
 insert into staff_emails (email, role) values
   (lower('your-email@example.com'), 'admin')
 on conflict (email) do update set role = 'admin';
+
+-- ---------- Permissions for logged-in staff ----------
+-- Newer Supabase projects do not give the "authenticated" role access to new
+-- tables automatically, so it is granted here. (Row Level Security above still
+-- decides WHO may use it: staff only.) control_counters and staff_emails are
+-- deliberately NOT granted: only the database itself touches them.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on settings, physicians, patients, certificates to authenticated;
+grant execute on function is_staff() to authenticated;
+
+-- The manage-users Edge Function runs as service_role and needs the staff list.
+grant usage on schema public to service_role;
+grant all on staff_emails to service_role;

@@ -158,12 +158,40 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.autocomplete-wrap')) suggestionsBox.classList.remove('show');
 });
 
+// ---------- Paper size + true-shape preview ----------
+// The preview shows the whole sheet, shrunk to fit its box, so what you see
+// has the same shape as the paper you will print on.
+function fitPreview(frame, settings) {
+  const p = window.PAPER_SIZES[settings.paperSize] || window.PAPER_SIZES.letter;
+  const wrap = frame.parentElement;
+  const avail = Math.max(200, wrap.clientWidth - 24);
+  const k = Math.min(1, avail / p.w);
+  frame.style.cssText = 'width:' + p.w + 'px;height:' + p.h + 'px;transform:scale(' + k + ');transform-origin:top left;' +
+    'margin-bottom:' + (-(p.h * (1 - k))) + 'px;border:1px solid #c7cfd8;background:#fff;display:block;';
+  frame.dataset.paper = settings.paperSize || 'letter';
+}
+window.addEventListener('resize', debounce(() => { refreshCertPreview(); refreshSettingsPreview(); }, 200));
+
+function initPaperSelects() {
+  const chosen = window.api.paper.get() || (currentSettings && currentSettings.paperSize) || 'letter';
+  document.querySelectorAll('.paper-select').forEach(sel => { sel.value = chosen; });
+}
+document.querySelectorAll('.paper-select').forEach(sel => {
+  sel.addEventListener('change', () => {
+    window.api.paper.set(sel.value);
+    document.querySelectorAll('.paper-select').forEach(o => { o.value = sel.value; });
+    refreshCertPreview();
+  });
+});
+
 // ---------- Live preview: New Certificate ----------
 const certPreviewFrame = document.getElementById('cert-preview-frame');
 const refreshCertPreview = debounce(async () => {
   if (!currentSettings) currentSettings = await window.api.getSettings();
   const cert = collectCertForm();
-  const html = await window.api.previewHtml(currentSettings, cert);
+  const effective = window.api.paper.apply(currentSettings);
+  const html = await window.api.previewHtml(effective, cert);
+  fitPreview(certPreviewFrame, effective);
   certPreviewFrame.srcdoc = html;
 }, 300);
 
@@ -432,8 +460,7 @@ document.getElementById('physician-form').addEventListener('submit', async (e) =
 });
 
 // ---------- Settings ----------
-let currentLogo1 = null;
-let currentLogo2 = null;
+const currentLogos = { 1: null, 2: null, 3: null };
 
 async function loadSettingsIntoForm() {
   const s = await window.api.getSettings();
@@ -448,45 +475,45 @@ async function loadSettingsIntoForm() {
   setVal('s-footerTagline', s.footerTagline);
   setVal('s-controlPrefix', s.controlPrefix || 'MEDCERT');
   setVal('s-logo1Size', s.logo1Size || 70);
-  setVal('s-logo2Size', s.logo2Size || 55);
+  setVal('s-logo2Size', s.logo2Size || 70);
+  setVal('s-logo3Size', s.logo3Size || 70);
+  setVal('s-paperSize', s.paperSize || 'letter');
+  initPaperSelects();
   document.getElementById('s-qrEnabled').checked = !!s.qrEnabled;
 
-  currentLogo1 = s.logo1;
-  currentLogo2 = s.logo2;
-  document.getElementById('logo1-preview').src = s.logo1 || '';
-  document.getElementById('logo2-preview').src = s.logo2 || '';
+  [1, 2, 3].forEach(n => {
+    currentLogos[n] = s['logo' + n] || null;
+    document.getElementById('logo' + n + '-preview').src = s['logo' + n] || '';
+  });
 
   if (!physiciansList.length) await loadPhysicians();
 }
 
-document.getElementById('btn-logo1').addEventListener('click', async () => {
-  const dataUrl = await window.api.pickLogo();
-  if (dataUrl) {
-    currentLogo1 = dataUrl;
-    document.getElementById('logo1-preview').src = dataUrl;
+[1, 2, 3].forEach(n => {
+  document.getElementById('btn-logo' + n).addEventListener('click', async () => {
+    const dataUrl = await window.api.pickLogo();
+    if (dataUrl) {
+      currentLogos[n] = dataUrl;
+      document.getElementById('logo' + n + '-preview').src = dataUrl;
+      refreshSettingsPreview();
+    }
+  });
+  document.getElementById('btn-logo' + n + '-clear').addEventListener('click', () => {
+    currentLogos[n] = null;
+    document.getElementById('logo' + n + '-preview').src = '';
     refreshSettingsPreview();
-  }
-});
-document.getElementById('btn-logo2').addEventListener('click', async () => {
-  const dataUrl = await window.api.pickLogo();
-  if (dataUrl) {
-    currentLogo2 = dataUrl;
-    document.getElementById('logo2-preview').src = dataUrl;
-    refreshSettingsPreview();
-  }
-});
-document.getElementById('btn-logo2-clear').addEventListener('click', () => {
-  currentLogo2 = null;
-  document.getElementById('logo2-preview').src = '';
-  refreshSettingsPreview();
+  });
 });
 
 function collectSettingsDraft() {
   return {
-    logo1: currentLogo1,
-    logo2: currentLogo2,
+    logo1: currentLogos[1],
+    logo2: currentLogos[2],
+    logo3: currentLogos[3],
     logo1Size: parseInt(val('s-logo1Size'), 10) || 70,
-    logo2Size: parseInt(val('s-logo2Size'), 10) || 55,
+    logo2Size: parseInt(val('s-logo2Size'), 10) || 70,
+    logo3Size: parseInt(val('s-logo3Size'), 10) || 70,
+    paperSize: document.getElementById('s-paperSize').value || 'letter',
     orgName: val('s-orgName'),
     orgSubtitle: val('s-orgSubtitle'),
     officeLine: val('s-officeLine'),
@@ -506,6 +533,7 @@ document.getElementById('settings-form').addEventListener('submit', async (e) =>
   const saved = await guarded(() => window.api.saveSettings(collectSettingsDraft()));
   if (!saved) return;
   currentSettings = saved;
+  initPaperSelects();
   await showToast('Settings saved.');
   refreshCertPreview();
 });
@@ -537,6 +565,7 @@ const refreshSettingsPreview = debounce(async () => {
     physicianPtr: samplePhysician.ptr || ''
   };
   const html = await window.api.previewHtml(draft, cert);
+  fitPreview(settingsPreviewFrame, draft);
   settingsPreviewFrame.srcdoc = html;
 }, 300);
 
@@ -643,6 +672,7 @@ async function startApp() {
   started = true;
   await guarded(async () => {
     currentSettings = await window.api.getSettings();
+    initPaperSelects();
     await loadPhysicians();
     await loadSettingsIntoForm();
     refreshCertPreview();

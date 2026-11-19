@@ -108,6 +108,15 @@
               <select id="f-physician"></select>
             </div>
 
+            <div class="field full paper-field">
+              <label>Paper to print on (this computer)</label>
+              <select class="paper-select">
+                <option value="letter">Letter (8.5 × 11 in)</option>
+                <option value="a4">A4 (210 × 297 mm)</option>
+                <option value="long">Long (8.5 × 13 in)</option>
+              </select>
+            </div>
+
             <div class="actions full">
               <button type="button" id="btn-preview" class="btn secondary">Print preview (no save)</button>
               <button type="submit" class="btn primary" id="btn-save-cert">Save &amp; Print</button>
@@ -127,7 +136,16 @@
       <!-- HISTORY -->
       <section id="tab-history" class="tab">
         <h1>Certificate History</h1>
-        <input type="text" id="history-search" placeholder="Search by patient name..." class="search-box" />
+        <div class="history-bar">
+          <input type="text" id="history-search" placeholder="Search by patient name..." class="search-box" />
+          <label class="size-label">Print on
+            <select class="paper-select">
+              <option value="letter">Letter (8.5 × 11 in)</option>
+                <option value="a4">A4 (210 × 297 mm)</option>
+                <option value="long">Long (8.5 × 13 in)</option>
+            </select>
+          </label>
+        </div>
         <table class="data-table">
           <thead>
             <tr><th>Certificate No.</th><th>Patient</th><th>Age</th><th>Date Examined</th><th>Issued</th><th>Status</th><th>Actions</th></tr>
@@ -198,23 +216,40 @@
             <form id="settings-form" class="grid-form" style="margin-top:20px">
               <div class="field full logo-row">
                 <div class="logo-pick">
-                  <label>Logo 1 (left)</label>
+                  <label>Logo 1</label>
                   <img id="logo1-preview" class="logo-preview" />
-                  <button type="button" class="btn ghost" id="btn-logo1">Choose Image</button>
-                  <label class="size-label">Size (px)
+                  <div>
+                    <button type="button" class="btn ghost" id="btn-logo1">Choose Image</button>
+                    <button type="button" class="btn ghost" id="btn-logo1-clear">Remove</button>
+                  </div>
+                  <label class="size-label">Height (px)
                     <input type="number" id="s-logo1Size" min="20" max="200" style="width:70px" />
                   </label>
                 </div>
                 <div class="logo-pick">
-                  <label>Logo 2 (right, optional)</label>
+                  <label>Logo 2</label>
                   <img id="logo2-preview" class="logo-preview" />
-                  <button type="button" class="btn ghost" id="btn-logo2">Choose Image</button>
-                  <button type="button" class="btn ghost" id="btn-logo2-clear">Remove</button>
-                  <label class="size-label">Size (px)
+                  <div>
+                    <button type="button" class="btn ghost" id="btn-logo2">Choose Image</button>
+                    <button type="button" class="btn ghost" id="btn-logo2-clear">Remove</button>
+                  </div>
+                  <label class="size-label">Height (px)
                     <input type="number" id="s-logo2Size" min="20" max="200" style="width:70px" />
                   </label>
                 </div>
+                <div class="logo-pick">
+                  <label>Logo 3</label>
+                  <img id="logo3-preview" class="logo-preview" />
+                  <div>
+                    <button type="button" class="btn ghost" id="btn-logo3">Choose Image</button>
+                    <button type="button" class="btn ghost" id="btn-logo3-clear">Remove</button>
+                  </div>
+                  <label class="size-label">Height (px)
+                    <input type="number" id="s-logo3Size" min="20" max="200" style="width:70px" />
+                  </label>
+                </div>
               </div>
+              <p class="hint full" style="margin-top:-6px">Logos print in a row at the top left, in this order, with the title text to their right. Leave a logo empty to skip it.</p>
 
               <div class="field full">
                 <label>Organization Name (large title)</label>
@@ -248,6 +283,16 @@
               <div class="field full">
                 <label>Footer Tagline</label>
                 <input type="text" id="s-footerTagline" />
+              </div>
+
+              <div class="field full">
+                <label>Default paper size</label>
+                <select id="s-paperSize">
+                <option value="letter">Letter (8.5 × 11 in)</option>
+                <option value="a4">A4 (210 × 297 mm)</option>
+                <option value="long">Long (8.5 × 13 in)</option>
+                </select>
+                <p class="hint">Each computer can also pick a paper size on the New Certificate and History screens.</p>
               </div>
 
               <div class="field full">

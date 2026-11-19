@@ -10,14 +10,15 @@
   const sb = configured ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
 
   const DEFAULT_SETTINGS = {
-    logo1: null, logo2: null, logo1Size: 70, logo2Size: 55,
+    logo1: null, logo2: null, logo1Size: 70, logo2Size: 70,
     orgName: 'Island Garden City of Samal',
     orgSubtitle: 'Province of Davao del Norte.',
     officeLine: 'Office of the Super Health Center Babak',
     cityProvince: 'Island Garden City of Samal, Davao del Norte',
     closingVenue: 'Babak Super Health Center of Island Garden City of Samal',
     footerAddress: '', footerEmail: '', footerTagline: '"Towards A Healthy IGACOS"',
-    controlPrefix: 'IGACOS-BABAK', qrEnabled: true, templateMode: 'builtin'
+    controlPrefix: 'IGACOS-BABAK', qrEnabled: true, templateMode: 'builtin',
+    paperSize: 'letter', logo3: null, logo3Size: 70
   };
 
   function unwrap({ data, error }) {
@@ -235,19 +236,27 @@
 
   const fileTitle = (c) => 'MedicalCertificate-' + String(c.name || 'patient').replace(/[^a-z0-9]+/gi, '_');
 
+  // The paper size picked on this computer (kept in this browser) wins over the default.
+  const paper = {
+    get() { try { return localStorage.getItem('medcert.paper') || ''; } catch (e) { return ''; } },
+    set(v) { try { localStorage.setItem('medcert.paper', v); } catch (e) {} },
+    apply(settings) { const v = paper.get(); return v ? { ...settings, paperSize: v } : settings; }
+  };
+
   async function exportPdf(id) {
-    const [settings, cert] = await Promise.all([getSettings(), getCertificate(id)]);
+    const [base, cert] = await Promise.all([getSettings(), getCertificate(id)]);
+    const settings = paper.apply(base);
     await printHtml(window.buildCertificateHtml(settings, withQr(settings, cert)), fileTitle(cert));
     return { saved: true, path: '' };
   }
   async function previewExportPdf(draft) {
-    const settings = await getSettings();
+    const settings = paper.apply(await getSettings());
     await printHtml(window.buildCertificateHtml(settings, withQr(settings, draft)), fileTitle(draft));
     return { saved: true, path: '' };
   }
 
   window.api = {
-    auth, users,
+    auth, users, paper,
     getSettings, saveSettings, pickLogo,
     listPhysicians, upsertPhysician, deletePhysician,
     listPatients, searchPatients, upsertPatient, deletePatient,

@@ -48,7 +48,7 @@ h1 { font-size: 22px; margin-bottom: 20px; }
 .split-preview { flex: 1; min-width: 320px; position: sticky; top: 0; }
 .preview-label { font-size: 12px; font-weight: 700; color: #536074; margin-bottom: 8px; }
 .preview-frame-wrap {
-  background: #dfe4ea; border-radius: 10px; padding: 12px;
+  background: #dfe4ea; border-radius: 10px; padding: 12px; overflow: hidden;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 .preview-frame {
@@ -57,7 +57,7 @@ h1 { font-size: 22px; margin-bottom: 20px; }
 
 .grid-form {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   background: #fff;
   padding: 24px;
@@ -69,6 +69,7 @@ h1 { font-size: 22px; margin-bottom: 20px; }
 .field.full { grid-column: 1 / -1; }
 .field label { font-size: 12px; font-weight: 600; color: #536074; }
 .field input, .field select, .field textarea {
+  min-width: 0; max-width: 100%;
   padding: 9px 10px;
   border: 1px solid #cfd8e3;
   border-radius: 8px;
@@ -106,7 +107,7 @@ h1 { font-size: 22px; margin-bottom: 20px; }
 .data-table th { background: #f0f3f7; font-weight: 700; color: #47536480; }
 .data-table td .btn { padding: 6px 10px; font-size: 12px; margin-right: 6px; }
 
-.logo-row { display: flex; gap: 40px; }
+.logo-row { display: flex; gap: 28px; flex-wrap: wrap; }
 .logo-pick { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .logo-preview {
   width: 90px; height: 90px; object-fit: contain;
@@ -262,6 +263,9 @@ h1 { font-size: 22px; margin-bottom: 20px; }
   .grid-form .field, .grid-form .field.small, .grid-form .field.full { grid-column: 1 / -1 !important; }
   .field input, .field select, .field textarea { min-width: 0; max-width: 100%; }
   .split-form, .split-preview { width: 100%; min-width: 0; flex: none; position: static; }
-  .preview-frame-wrap { height: 520px; }
   .logo-row { flex-direction: column; }
 }
+
+.history-bar { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.history-bar .search-box { flex: 1; min-width: 220px; }
+.paper-select { padding: 8px 10px; border: 1px solid #cfd8e3; border-radius: 8px; font-size: 14px; background: #fff; }
